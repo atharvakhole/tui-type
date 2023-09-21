@@ -1,13 +1,16 @@
 use std::{io, thread, time::Duration};
 
 use ratatui::{prelude::CrosstermBackend, Terminal};
-use tui_type::tui::Tui;
+use tui_type::{tui::Tui, event::EventHandler};
 
 fn main() -> io::Result<()> {
     // Initialize the terminal user interface.
     let backend = CrosstermBackend::new(io::stdout());
     let terminal = Terminal::new(backend)?;
-    let mut tui = Tui::new(terminal);
+
+    // We will later accept terminal arguments for tick rate
+    let events = EventHandler::new(250);
+    let mut tui = Tui::new(terminal, events);
     tui.init()?;
 
     tui.draw()?;
