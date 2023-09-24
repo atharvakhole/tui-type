@@ -1,22 +1,17 @@
 use crossterm::terminal::{self, EnterAlternateScreen, LeaveAlternateScreen};
-use ratatui::{
-    prelude::{Alignment, Backend},
-    style::{Color, Style, Stylize},
-    widgets::{Block, BorderType, Borders, Paragraph},
-    Terminal,
-};
-use std::io;
+use ratatui::{prelude::CrosstermBackend, Terminal};
+use std::io::{self, Stderr};
 
-use crate::event::EventHandler;
+use crate::{app::App, event::EventHandler};
 
-pub struct Tui<B: Backend> {
-    terminal: Terminal<B>,
+pub struct Tui {
+    terminal: Terminal<CrosstermBackend<Stderr>>,
     pub events: EventHandler,
 }
 
-impl<B: Backend> Tui<B> {
+impl Tui {
     // Constructor
-    pub fn new(terminal: Terminal<B>, events: EventHandler) -> Self {
+    pub fn new(terminal: Terminal<CrosstermBackend<Stderr>>, events: EventHandler) -> Self {
         Self { terminal, events }
     }
 
@@ -24,7 +19,7 @@ impl<B: Backend> Tui<B> {
     // Sets terminal properties
     pub fn init(&mut self) -> io::Result<()> {
         terminal::enable_raw_mode()?;
-        crossterm::execute!(io::stdout(), EnterAlternateScreen)?;
+        crossterm::execute!(io::stderr(), EnterAlternateScreen)?;
 
         self.terminal.hide_cursor()?;
         self.terminal.clear()?;
@@ -34,30 +29,15 @@ impl<B: Backend> Tui<B> {
     // Exits the terminal interface
     pub fn exit(&mut self) -> io::Result<()> {
         terminal::disable_raw_mode()?;
-        crossterm::execute!(io::stdout(), LeaveAlternateScreen)?;
+        crossterm::execute!(io::stderr(), LeaveAlternateScreen)?;
 
         self.terminal.show_cursor()?;
         Ok(())
     }
 
     // Draws widgets on the terminal
-    pub fn draw(&mut self) -> io::Result<()> {
-        self.terminal.draw(|frame| {
-            frame.render_widget(
-                Paragraph::new(format!("Hello world"))
-                    .block(
-                        Block::default()
-                            .title("Template")
-                            .title_alignment(Alignment::Center)
-                            .border_style(Style::default().fg(Color::White))
-                            .borders(Borders::ALL)
-                            .border_type(BorderType::Thick),
-                    )
-                    .style(Style::default().fg(Color::Cyan).bg(Color::Black).bold())
-                    .alignment(Alignment::Left),
-                frame.size(),
-            );
-        })?;
+    pub fn draw(&mut self, app: &mut App) -> io::Result<()> {
+        self.terminal.draw(|frame| crate::ui::render(app, frame))?;
         Ok(())
     }
 }
