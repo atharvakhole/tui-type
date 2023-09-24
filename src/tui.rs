@@ -21,7 +21,7 @@ impl<B: Backend> Tui<B> {
     // Sets terminal properties
     pub fn init(&mut self) -> io::Result<()> {
         terminal::enable_raw_mode()?;
-        crossterm::execute!(io::stdout(), EnterAlternateScreen)?;
+        crossterm::execute!(io::stderr(), EnterAlternateScreen)?;
 
         self.terminal.hide_cursor()?;
         self.terminal.clear()?;
@@ -31,7 +31,7 @@ impl<B: Backend> Tui<B> {
     // Exits the terminal interface
     pub fn exit(&mut self) -> io::Result<()> {
         terminal::disable_raw_mode()?;
-        crossterm::execute!(io::stdout(), LeaveAlternateScreen)?;
+        crossterm::execute!(io::stderr(), LeaveAlternateScreen)?;
 
         self.terminal.show_cursor()?;
         Ok(())
